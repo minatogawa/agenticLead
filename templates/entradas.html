@@ -20,21 +20,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <form method="GET" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" name="status" id="status">
-                            <option value="all" {% if not current_status or current_status == 'all' %}selected{% endif %}>Todos</option>
-                            {% for status in status_options %}
-                            <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>
-                                {% if status == 'completed' %}Concluído
-                                {% elif status == 'error' %}Erro
-                                {% elif status == 'pending' %}Pendente
-                                {% else %}{{ status }}{% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="tipo" class="form-label">Tipo de Demanda</label>
                         <select class="form-select" name="tipo" id="tipo">
                             <option value="all" {% if not current_tipo or current_tipo == 'all' %}selected{% endif %}>Todos</option>
@@ -43,7 +29,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-6 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">
                             <i class="bi bi-search"></i> Filtrar
                         </button>
@@ -76,14 +62,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">ID</th>
-                                <th width="15%">Nome</th>
-                                <th width="12%">Telefone</th>
-                                <th width="10%">Bairro</th>
-                                <th width="12%">Tipo</th>
-                                <th width="20%">Descrição</th>
-                                <th width="8%">Prioridade</th>
-                                <th width="8%">Confiança</th>
-                                <th width="10%">Status</th>
+                                <th width="18%">Nome</th>
+                                <th width="15%">Telefone</th>
+                                <th width="12%">Bairro</th>
+                                <th width="15%">Tipo</th>
+                                <th width="25%">Descrição</th>
+                                <th width="10%">Prioridade</th>
+                                <th width="10%">Confiança</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -160,21 +145,6 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    {% if entrada.extraction_status == 'completed' %}
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> OK
-                                        </span>
-                                    {% elif entrada.extraction_status == 'error' %}
-                                        <span class="badge bg-danger">
-                                            <i class="bi bi-x-circle"></i> Erro
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-warning">
-                                            <i class="bi bi-clock"></i> Pendente
-                                        </span>
-                                    {% endif %}
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -193,7 +163,7 @@
             <ul class="pagination justify-content-center">
                 {% if pagination.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ pagination.page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
+                        <a class="page-link" href="?page={{ pagination.page - 1 }}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
@@ -206,14 +176,14 @@
                         </li>
                     {% elif page <= pagination.page + 2 and page >= pagination.page - 2 %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">{{ page }}</a>
+                            <a class="page-link" href="?page={{ page }}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">{{ page }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}
                 
                 {% if pagination.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ pagination.page + 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
+                        <a class="page-link" href="?page={{ pagination.page + 1 }}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>

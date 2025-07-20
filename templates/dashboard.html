@@ -75,38 +75,8 @@
 
 <!-- Charts Row -->
 <div class="row mb-4">
-    <!-- Status Chart -->
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-pie-chart text-primary"></i>
-                    Status de Processamento
-                </h5>
-            </div>
-            <div class="card-body">
-                {% for status, count in stats.status_counts.items() %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>
-                        {% if status == 'completed' %}
-                            <span class="badge bg-success badge-status">Concluído</span>
-                        {% elif status == 'error' %}
-                            <span class="badge bg-danger badge-status">Erro</span>
-                        {% elif status == 'pending' %}
-                            <span class="badge bg-warning badge-status">Pendente</span>
-                        {% else %}
-                            <span class="badge bg-secondary badge-status">{{ status }}</span>
-                        {% endif %}
-                    </span>
-                    <strong>{{ count }}</strong>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    
     <!-- Types Chart -->
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="card-title mb-0">
@@ -162,7 +132,6 @@
                                 <th>Tipo</th>
                                 <th>Bairro</th>
                                 <th>Data/Hora</th>
-                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -184,15 +153,6 @@
                                 <td>{{ entrada.bairro }}</td>
                                 <td>
                                     <small class="text-muted">{{ entrada.timestamp }}</small>
-                                </td>
-                                <td>
-                                    {% if entrada.status == 'completed' %}
-                                        <span class="badge bg-success">Concluído</span>
-                                    {% elif entrada.status == 'error' %}
-                                        <span class="badge bg-danger">Erro</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Pendente</span>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
