@@ -34,11 +34,15 @@ def migrate_from_csv():
         Session = sessionmaker(bind=engine)
         session = Session()
         
+        # Forçar a recriação da tabela para garantir o esquema mais recente
+        print("💣 Excluindo tabela structured_entries para garantir atualização do esquema...")
+        StructuredEntry.__table__.drop(engine, checkfirst=True)
+
         # Criar tabelas
-        print("📋 Criando tabelas no PostgreSQL...")
+        print("📋 Criando tabelas no PostgreSQL (com esquema atualizado)...")
         Base.metadata.create_all(engine)
         
-        # Limpar tabelas existentes
+        # Limpar tabelas existentes (redundante se a tabela foi dropada, mas seguro)
         print("🧹 Limpando dados existentes...")
         session.execute(text("DELETE FROM structured_entries"))
         session.execute(text("DELETE FROM raw_entries"))
