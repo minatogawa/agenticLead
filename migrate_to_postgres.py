@@ -11,11 +11,11 @@ from datetime import datetime
 
 def migrate_data():
     """Migra dados do CSV local para PostgreSQL"""
-    print("🚀 Iniciando migração para PostgreSQL...")
+    print("Iniciando migracao para PostgreSQL...")
     
     # Verificar se temos a DATABASE_URL do PostgreSQL
     if not DATABASE_URL.startswith("postgresql://"):
-        print("❌ DATABASE_URL deve ser PostgreSQL para migração")
+        print("DATABASE_URL deve ser PostgreSQL para migracao")
         print(f"URL atual: {DATABASE_URL}")
         return False
     
@@ -24,30 +24,30 @@ def migrate_data():
         engine = create_engine(DATABASE_URL)
         
         # Criar todas as tabelas
-        print("📋 Criando tabelas no PostgreSQL...")
+        print("Criando tabelas no PostgreSQL...")
         Base.metadata.create_all(engine)
         
         # Ler dados do CSV local
-        print("📊 Lendo dados do arquivo CSV local...")
+        print("Lendo dados do arquivo CSV local...")
         csv_file = "agenticlead_dados.csv"
         
         if not os.path.exists(csv_file):
-            print(f"❌ Arquivo {csv_file} não encontrado")
+            print(f"Arquivo {csv_file} nao encontrado")
             return False
         
         df = pd.read_csv(csv_file)
-        print(f"📈 Encontrados {len(df)} registros no CSV")
+        print(f"Encontrados {len(df)} registros no CSV")
         
         # Migrar dados para PostgreSQL
         with engine.connect() as conn:
             # Limpar tabelas existentes
-            print("🧹 Limpando tabelas existentes...")
+            print("Limpando tabelas existentes...")
             conn.execute(text("DELETE FROM structured_entries"))
             conn.execute(text("DELETE FROM raw_entries"))
             conn.commit()
             
             # Inserir dados
-            print("💾 Inserindo dados no PostgreSQL...")
+            print("Inserindo dados no PostgreSQL...")
             migrated = 0
             
             for _, row in df.iterrows():
@@ -105,21 +105,21 @@ def migrate_data():
                     migrated += 1
                     
                 except Exception as e:
-                    print(f"⚠️ Erro ao migrar registro {row.get('id_registro', 'N/A')}: {e}")
+                    print(f"Erro ao migrar registro {row.get('id_registro', 'N/A')}: {e}")
                     continue
             
             conn.commit()
             
-        print(f"✅ Migração concluída! {migrated} registros migrados para PostgreSQL")
+        print(f"Migracao concluida! {migrated} registros migrados para PostgreSQL")
         return True
         
     except Exception as e:
-        print(f"❌ Erro durante migração: {e}")
+        print(f"Erro durante migracao: {e}")
         return False
 
 if __name__ == "__main__":
     success = migrate_data()
     if success:
-        print("🎉 Migração bem-sucedida!")
+        print("Migracao bem-sucedida!")
     else:
-        print("💥 Migração falhou!")
+        print("Migracao falhou!")
