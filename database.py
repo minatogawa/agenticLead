@@ -65,6 +65,14 @@ class Database:
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
     
+    def ensure_transaction_rollback(self):
+        """Garante que transações em erro sejam revertidas"""
+        try:
+            if self.session.in_transaction():
+                self.session.rollback()
+        except Exception:
+            pass
+    
     def save_raw_entry(self, agente_id: str, texto: str, message_id: int = None, lat: float = None, lon: float = None):
         """Salva uma entrada bruta no banco"""
         entry = RawEntry(

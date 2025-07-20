@@ -15,6 +15,8 @@ app = Flask(__name__)
 def dashboard():
     """Página principal com dashboard"""
     try:
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
         # Estatísticas gerais
         total_raw = db.session.query(RawEntry).count()
         total_structured = db.session.query(StructuredEntry).count()
@@ -89,12 +91,16 @@ def dashboard():
         return render_template('dashboard.html', stats=stats)
         
     except Exception as e:
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
         return f"Erro ao carregar dashboard: {e}", 500
 
 @app.route('/entradas')
 def entradas():
     """Página com listagem de todas as entradas"""
     try:
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
         page = request.args.get('page', 1, type=int)
         per_page = 20
         
@@ -157,12 +163,16 @@ def entradas():
                              current_tipo=tipo_filter)
         
     except Exception as e:
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
         return f"Erro ao carregar entradas: {e}", 500
 
 @app.route('/entrada/<int:entry_id>')
 def entrada_detalhe(entry_id):
     """Página de detalhes de uma entrada específica"""
     try:
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
         result = db.session.query(StructuredEntry, RawEntry).join(
             RawEntry, StructuredEntry.raw_text_id == RawEntry.id
         ).filter(StructuredEntry.id == entry_id).first()
@@ -210,6 +220,8 @@ def entrada_detalhe(entry_id):
         return render_template('entrada_detalhe.html', entrada=entrada)
         
     except Exception as e:
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
         return f"Erro ao carregar entrada: {e}", 500
 
 @app.route('/api/stats')
