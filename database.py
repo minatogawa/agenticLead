@@ -48,6 +48,13 @@ class StructuredEntry(Base):
     confianca_campos = Column(JSON)  # Dict com confiança por campo
     timestamp_processamento = Column(DateTime, default=datetime.utcnow)
     revisado = Column(Boolean, default=False)
+    
+    # Campos de controle LLM (E3-S5)
+    extraction_status = Column(String(20), default="pending")  # pending, completed, error, validation_failed
+    error_msg = Column(Text)
+    llm_metadata = Column(Text)
+    processing_attempts = Column(Integer, default=0)
+    last_processed_at = Column(DateTime)
 
 class Database:
     """Classe para gerenciar conexões com o banco"""

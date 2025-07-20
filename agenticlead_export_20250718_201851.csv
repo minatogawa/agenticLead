@@ -1,0 +1,4 @@
+id_registro,raw_text_id,data_contato,hora_contato,nome,telefone,bairro,referencia_local,tipo_demanda,descricao_curta,prioridade_percebida,consentimento_comunicacao,fonte,confianca_global,flags,revisado,timestamp_processamento,timestamp_captura,agente_id,texto_original,latitude,longitude
+1,1,,,,,,,,,,,texto_digitado,0.0,,False,2025-07-18 23:14:16.227780,2025-07-18 22:55:35.099481,7632684980,"Hoje 18/07 falei com Maria Silva na Praça Central, bueiro entupido na esquina da Rua A com Rua B, telefone 11 99999-8888, urgente porque tem crianças passando",,
+2,2,,,,,,,,,,,texto_digitado,0.0,,False,2025-07-18 23:14:16.269915,2025-07-18 22:57:37.333064,7632684980,teste test,,
+3,3,,,,,,,,,,,texto_digitado,0.0,,False,2025-07-18 23:14:16.293021,2025-07-18 22:58:54.530451,7632684980,hoje falei com joao da silva,,

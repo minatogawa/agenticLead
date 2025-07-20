@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Entrada #{{ entrada.id }} - AgenticLead{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-6">
+                    <i class="bi bi-file-text text-primary"></i>
+                    Entrada #{{ entrada.id }}
+                </h1>
+                <p class="text-muted">Detalhes completos da demanda capturada</p>
+            </div>
+            <div>
+                <a href="/entradas" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Badge -->
+<div class="row mb-4">
+    <div class="col">
+        {% if entrada.extraction_status == 'completed' %}
+            <span class="badge bg-success fs-6 mb-3">
+                <i class="bi bi-check-circle"></i> Processamento Concluído
+            </span>
+        {% elif entrada.extraction_status == 'error' %}
+            <span class="badge bg-danger fs-6 mb-3">
+                <i class="bi bi-x-circle"></i> Erro no Processamento
+            </span>
+        {% else %}
+            <span class="badge bg-warning fs-6 mb-3">
+                <i class="bi bi-clock"></i> Processamento Pendente
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Left Column - Extracted Data -->
+    <div class="col-md-8">
+        <!-- Contact Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i>
+                    Informações de Contato
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Nome</label>
+                            <p class="fs-5 fw-bold">{{ entrada.nome or 'Não informado' }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Telefone</label>
+                            <p>
+                                {% if entrada.telefone %}
+                                    <code class="fs-6">{{ entrada.telefone }}</code>
+                                {% else %}
+                                    <span class="text-muted">Não informado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Data/Hora do Contato</label>
+                            <p>
+                                {% if entrada.data_contato %}
+                                    {{ entrada.data_contato }}
+                                    {% if entrada.hora_contato %} às {{ entrada.hora_contato }}{% endif %}
+                                {% else %}
+                                    <span class="text-muted">Não informado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Consentimento para Comunicação</label>
+                            <p>
+                                {% if entrada.consentimento_comunicacao %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Sim
+                                    </span>
+                                {% elif entrada.consentimento_comunicacao == false %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle"></i> Não
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Não informado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location & Demand Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-geo-alt"></i>
+                    Localização e Demanda
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Bairro</label>
+                            <p class="fs-6">{{ entrada.bairro or 'Não informado' }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Referência Local</label>
+                            <p class="fs-6">{{ entrada.referencia_local or 'Não informado' }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Tipo de Demanda</label>
+                            <p>
+                                {% if entrada.tipo_demanda %}
+                                    {% if entrada.tipo_demanda == 'BUEIRO' %}
+                                        <span class="badge bg-primary fs-6">
+                                            <i class="bi bi-droplet"></i> {{ entrada.tipo_demanda }}
+                                        </span>
+                                    {% elif entrada.tipo_demanda in ['ARVORE', 'PODA'] %}
+                                        <span class="badge bg-success fs-6">
+                                            <i class="bi bi-tree"></i> {{ entrada.tipo_demanda }}
+                                        </span>
+                                    {% elif entrada.tipo_demanda == 'ILUMINACAO' %}
+                                        <span class="badge bg-warning fs-6">
+                                            <i class="bi bi-lightbulb"></i> {{ entrada.tipo_demanda }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">{{ entrada.tipo_demanda }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Não classificado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Prioridade</label>
+                            <p>
+                                {% if entrada.prioridade_percebida == 'ALTA' %}
+                                    <span class="badge bg-danger fs-6">
+                                        <i class="bi bi-exclamation-triangle"></i> ALTA
+                                    </span>
+                                {% elif entrada.prioridade_percebida == 'MEDIA' %}
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="bi bi-dash-circle"></i> MÉDIA
+                                    </span>
+                                {% elif entrada.prioridade_percebida == 'BAIXA' %}
+                                    <span class="badge bg-success fs-6">
+                                        <i class="bi bi-check-circle"></i> BAIXA
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Não avaliada</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if entrada.descricao_curta %}
+                <div class="mb-0">
+                    <label class="form-label text-muted small">Descrição</label>
+                    <div class="alert alert-light border">
+                        <i class="bi bi-quote"></i>
+                        {{ entrada.descricao_curta }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Original Text -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-chat-text"></i>
+                    Texto Original
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-light border-start border-info border-4 p-3">
+                    <i class="bi bi-quote text-info"></i>
+                    <em>{{ entrada.texto_original }}</em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Metadata -->
+    <div class="col-md-4">
+        <!-- Confidence & Quality -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i>
+                    Qualidade da Extração
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if entrada.confianca_global %}
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Confiança Global</label>
+                    <div class="d-flex align-items-center">
+                        <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                            <div class="progress-bar 
+                                {% if entrada.confianca_global >= 0.7 %}bg-success
+                                {% elif entrada.confianca_global >= 0.4 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                style="width: {{ (entrada.confianca_global * 100)|round }}%">
+                                {{ (entrada.confianca_global * 100)|round }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if entrada.confianca_campos %}
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Confiança por Campo</label>
+                    {% for campo, confianca in entrada.confianca_campos.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small>{{ campo }}</small>
+                        <small class="text-muted">{{ (confianca * 100)|round }}%</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if entrada.flags %}
+                <div class="mb-0">
+                    <label class="form-label text-muted small">Flags</label>
+                    {% for flag in entrada.flags %}
+                    <span class="badge bg-warning text-dark me-1 mb-1">{{ flag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Processing Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Info de Processamento
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted">Capturado em:</small><br>
+                    <small>{{ entrada.timestamp_captura.strftime('%d/%m/%Y às %H:%M:%S') }}</small>
+                </div>
+                
+                {% if entrada.timestamp_processamento %}
+                <div class="mb-2">
+                    <small class="text-muted">Processado em:</small><br>
+                    <small>{{ entrada.timestamp_processamento.strftime('%d/%m/%Y às %H:%M:%S') }}</small>
+                </div>
+                {% endif %}
+
+                <div class="mb-2">
+                    <small class="text-muted">Agente ID:</small><br>
+                    <code class="small">{{ entrada.agente_id }}</code>
+                </div>
+
+                {% if entrada.telegram_message_id %}
+                <div class="mb-2">
+                    <small class="text-muted">Message ID:</small><br>
+                    <code class="small">{{ entrada.telegram_message_id }}</code>
+                </div>
+                {% endif %}
+
+                <div class="mb-0">
+                    <small class="text-muted">Revisado:</small><br>
+                    {% if entrada.revisado %}
+                        <span class="badge bg-success">Sim</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Não</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coordinates (if available) -->
+        {% if entrada.latitude and entrada.longitude %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-map"></i>
+                    Coordenadas GPS
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted">Latitude:</small><br>
+                    <code>{{ entrada.latitude }}</code>
+                </div>
+                <div class="mb-0">
+                    <small class="text-muted">Longitude:</small><br>
+                    <code>{{ entrada.longitude }}</code>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Error Message (if any) -->
+        {% if entrada.error_msg %}
+        <div class="card border-0 shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Erro de Processamento
+                </h6>
+            </div>
+            <div class="card-body">
+                <small class="text-danger">{{ entrada.error_msg }}</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

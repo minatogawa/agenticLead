@@ -138,12 +138,40 @@ Sou um assistente para captura de demandas públicas.
             # Confirmar recebimento
             await update.message.reply_text(
                 f"✅ Registro #{raw_id} salvo com sucesso!\n"
-                f"📝 Texto capturado e será processado em breve.\n"
-                f"🔄 Use /stats para acompanhar o processamento."
+                f"🤖 Processando com IA e exportando...\n"
+                f"⏳ Aguarde alguns segundos..."
             )
             
-            # TODO: Aqui chamaremos o pipeline de processamento
-            logger.info(f"Raw entry {raw_id} salva para processamento posterior")
+            # Acionar processamento automático
+            try:
+                from auto_processor import AutoProcessor
+                processor = AutoProcessor()
+                
+                # Executar pipeline completo
+                results = await processor.process_new_entries()
+                
+                if results["success"]:
+                    # Notificar sucesso
+                    await update.message.reply_text(
+                        f"🎉 Processamento concluído!\n"
+                        f"📊 {results['message']}\n"
+                        f"📁 Arquivos atualizados: agenticlead_dados.xlsx/.csv"
+                    )
+                    logger.info(f"Processamento automático bem-sucedido: {results['message']}")
+                else:
+                    # Notificar erro
+                    await update.message.reply_text(
+                        f"⚠️ Erro no processamento automático.\n"
+                        f"Dados salvos, mas processamento manual necessário."
+                    )
+                    logger.error(f"Erro no processamento automático: {results['message']}")
+                
+            except Exception as proc_error:
+                logger.error(f"Erro crítico no processamento automático: {proc_error}")
+                await update.message.reply_text(
+                    f"⚠️ Dados salvos, mas processamento automático falhou.\n"
+                    f"Use /stats para verificar status."
+                )
             
         except Exception as e:
             logger.error(f"Erro ao processar mensagem: {e}")

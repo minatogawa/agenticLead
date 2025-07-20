@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Entradas - AgenticLead{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-6">
+            <i class="bi bi-list-ul text-primary"></i>
+            Todas as Entradas
+        </h1>
+        <p class="text-muted">Lista completa de demandas capturadas e processadas</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" name="status" id="status">
+                            <option value="all" {% if not current_status or current_status == 'all' %}selected{% endif %}>Todos</option>
+                            {% for status in status_options %}
+                            <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>
+                                {% if status == 'completed' %}Concluído
+                                {% elif status == 'error' %}Erro
+                                {% elif status == 'pending' %}Pendente
+                                {% else %}{{ status }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipo" class="form-label">Tipo de Demanda</label>
+                        <select class="form-select" name="tipo" id="tipo">
+                            <option value="all" {% if not current_tipo or current_tipo == 'all' %}selected{% endif %}>Todos</option>
+                            {% for tipo in tipos_options %}
+                            <option value="{{ tipo }}" {% if current_tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="/entradas" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Entries Table -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-table text-info"></i>
+                    Entradas ({{ pagination.total }} total)
+                </h5>
+                <small class="text-muted">
+                    Página {{ pagination.page }} de {{ pagination.pages }}
+                </small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="15%">Nome</th>
+                                <th width="12%">Telefone</th>
+                                <th width="10%">Bairro</th>
+                                <th width="12%">Tipo</th>
+                                <th width="20%">Descrição</th>
+                                <th width="8%">Prioridade</th>
+                                <th width="8%">Confiança</th>
+                                <th width="10%">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrada in entradas %}
+                            <tr>
+                                <td>
+                                    <a href="/entrada/{{ entrada.id }}" class="text-decoration-none fw-bold">
+                                        #{{ entrada.id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ entrada.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ entrada.timestamp_captura }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if entrada.telefone != 'N/A' %}
+                                        <code class="small">{{ entrada.telefone }}</code>
+                                    {% else %}
+                                        <span class="text-muted">{{ entrada.telefone }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ entrada.bairro }}</td>
+                                <td>
+                                    {% if entrada.tipo_demanda != 'N/A' %}
+                                        {% if entrada.tipo_demanda == 'BUEIRO' %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-droplet"></i> {{ entrada.tipo_demanda }}
+                                            </span>
+                                        {% elif entrada.tipo_demanda in ['ARVORE', 'PODA'] %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-tree"></i> {{ entrada.tipo_demanda }}
+                                            </span>
+                                        {% elif entrada.tipo_demanda == 'ILUMINACAO' %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-lightbulb"></i> {{ entrada.tipo_demanda }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ entrada.tipo_demanda }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">{{ entrada.tipo_demanda }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ entrada.descricao_curta[:50] }}{% if entrada.descricao_curta|length > 50 %}...{% endif %}</small>
+                                </td>
+                                <td>
+                                    {% if entrada.prioridade_percebida == 'ALTA' %}
+                                        <span class="badge bg-danger">{{ entrada.prioridade_percebida }}</span>
+                                    {% elif entrada.prioridade_percebida == 'MEDIA' %}
+                                        <span class="badge bg-warning">{{ entrada.prioridade_percebida }}</span>
+                                    {% elif entrada.prioridade_percebida == 'BAIXA' %}
+                                        <span class="badge bg-success">{{ entrada.prioridade_percebida }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ entrada.prioridade_percebida }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if entrada.confianca_global > 0 %}
+                                        <div class="d-flex align-items-center">
+                                            <small class="me-1">{{ (entrada.confianca_global * 100)|round }}%</small>
+                                            <div class="progress" style="width: 40px; height: 6px;">
+                                                <div class="progress-bar 
+                                                    {% if entrada.confianca_global >= 0.7 %}bg-success
+                                                    {% elif entrada.confianca_global >= 0.4 %}bg-warning
+                                                    {% else %}bg-danger{% endif %}" 
+                                                    style="width: {{ (entrada.confianca_global * 100)|round }}%"></div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if entrada.extraction_status == 'completed' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> OK
+                                        </span>
+                                    {% elif entrada.extraction_status == 'error' %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle"></i> Erro
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-clock"></i> Pendente
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="row mt-4">
+    <div class="col">
+        <nav aria-label="Navegação das páginas">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pagination.page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page in range(1, pagination.pages + 1) %}
+                    {% if page == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page }}</span>
+                        </li>
+                    {% elif page <= pagination.page + 2 and page >= pagination.page - 2 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pagination.page + 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_tipo %}&tipo={{ current_tipo }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

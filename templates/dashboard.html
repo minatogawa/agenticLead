@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AgenticLead{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-6">
+            <i class="bi bi-speedometer2 text-primary"></i>
+            Dashboard do Sistema
+        </h1>
+        <p class="text-muted">Visão geral das demandas públicas processadas</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-inbox text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold">{{ stats.total_raw }}</h3>
+                <p class="text-muted mb-0">Total de Mensagens</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold">{{ stats.total_structured }}</h3>
+                <p class="text-muted mb-0">Dados Estruturados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-clock text-warning fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold">{{ stats.unprocessed }}</h3>
+                <p class="text-muted mb-0">Pendentes</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-percent text-info fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold">{{ stats.coverage }}%</h3>
+                <p class="text-muted mb-0">Cobertura</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Status Chart -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart text-primary"></i>
+                    Status de Processamento
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for status, count in stats.status_counts.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>
+                        {% if status == 'completed' %}
+                            <span class="badge bg-success badge-status">Concluído</span>
+                        {% elif status == 'error' %}
+                            <span class="badge bg-danger badge-status">Erro</span>
+                        {% elif status == 'pending' %}
+                            <span class="badge bg-warning badge-status">Pendente</span>
+                        {% else %}
+                            <span class="badge bg-secondary badge-status">{{ status }}</span>
+                        {% endif %}
+                    </span>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Types Chart -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart text-success"></i>
+                    Tipos de Demanda
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for tipo, count in stats.tipos_demanda.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>
+                        {% if tipo == 'BUEIRO' %}
+                            <i class="bi bi-droplet text-primary"></i>
+                        {% elif tipo == 'ARVORE' or tipo == 'PODA' %}
+                            <i class="bi bi-tree text-success"></i>
+                        {% elif tipo == 'ILUMINACAO' %}
+                            <i class="bi bi-lightbulb text-warning"></i>
+                        {% elif tipo == 'LIMPEZA' %}
+                            <i class="bi bi-trash text-info"></i>
+                        {% else %}
+                            <i class="bi bi-question-circle text-secondary"></i>
+                        {% endif %}
+                        {{ tipo }}
+                    </span>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Entries -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history text-info"></i>
+                    Últimas Entradas
+                </h5>
+                <a href="/entradas" class="btn btn-outline-primary btn-sm">
+                    Ver Todas <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Bairro</th>
+                                <th>Data/Hora</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrada in stats.latest_entries %}
+                            <tr>
+                                <td>
+                                    <a href="/entrada/{{ entrada.id }}" class="text-decoration-none">
+                                        #{{ entrada.id }}
+                                    </a>
+                                </td>
+                                <td>{{ entrada.nome }}</td>
+                                <td>
+                                    {% if entrada.tipo_demanda != 'N/A' %}
+                                        <span class="badge bg-light text-dark">{{ entrada.tipo_demanda }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ entrada.tipo_demanda }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ entrada.bairro }}</td>
+                                <td>
+                                    <small class="text-muted">{{ entrada.timestamp }}</small>
+                                </td>
+                                <td>
+                                    {% if entrada.status == 'completed' %}
+                                        <span class="badge bg-success">Concluído</span>
+                                    {% elif entrada.status == 'error' %}
+                                        <span class="badge bg-danger">Erro</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pendente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col text-center">
+        <button id="btnProcess" class="btn btn-primary btn-lg me-3">
+            <i class="bi bi-cpu"></i>
+            Processar Pendentes
+        </button>
+        <button id="btnRefresh" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-clockwise"></i>
+            Atualizar Dashboard
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnProcess = document.getElementById('btnProcess');
+    const btnRefresh = document.getElementById('btnRefresh');
+    
+    btnProcess.addEventListener('click', function() {
+        btnProcess.disabled = true;
+        btnProcess.innerHTML = '<i class="bi bi-hourglass-split"></i> Processando...';
+        
+        fetch('/api/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Processamento concluído: ' + data.message);
+                location.reload();
+            } else {
+                alert('Erro no processamento: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erro na requisição: ' + error);
+        })
+        .finally(() => {
+            btnProcess.disabled = false;
+            btnProcess.innerHTML = '<i class="bi bi-cpu"></i> Processar Pendentes';
+        });
+    });
+    
+    btnRefresh.addEventListener('click', function() {
+        location.reload();
+    });
+});
+</script>
+{% endblock %}
