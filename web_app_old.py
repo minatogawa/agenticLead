@@ -1,28 +1,26 @@
 """
-Interface Web para AgenticLead - Versão PostgreSQL
-Dashboard otimizado para PostgreSQL
+Interface Web para AgenticLead
+Dashboard simples com Bootstrap
 """
 from flask import Flask, render_template, jsonify, request
-from database import get_db, RawEntry, StructuredEntry
+from database import db, StructuredEntry, RawEntry
+from auto_processor import AutoProcessor
 from sqlalchemy import func, desc
 from datetime import datetime
 import json
-import os
 
 app = Flask(__name__)
-
-# Inicializar banco de dados
-db = get_db()
 
 @app.route('/')
 def dashboard():
     """Página principal com dashboard"""
     try:
-        # Garantir transação limpa
-        db.ensure_clean_transaction()
-        
-        # Estatísticas básicas
-        stats = db.get_stats()
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
+        # Estatísticas gerais
+        total_raw = db.session.query(RawEntry).count()
+        total_structured = db.session.query(StructuredEntry).count()
+        unprocessed = db.session.query(RawEntry).filter(RawEntry.processado == False).count()
         
         # Status de extração
         status_counts = {}
@@ -34,9 +32,8 @@ def dashboard():
             
             for status, count in status_query:
                 status_counts[status or 'pending'] = count
-        except Exception as e:
-            print(f"Erro ao buscar status: {e}")
-            status_counts = {'unknown': stats['total_structured']}
+        except:
+            status_counts = {'unknown': total_structured}
         
         # Tipos de demanda
         tipos_demanda = {}
@@ -48,8 +45,7 @@ def dashboard():
             
             for tipo, count in tipos_query:
                 tipos_demanda[tipo or 'Não classificado'] = count
-        except Exception as e:
-            print(f"Erro ao buscar tipos: {e}")
+        except:
             tipos_demanda = {}
         
         # Confiança média
@@ -57,8 +53,7 @@ def dashboard():
             avg_confidence = db.session.query(
                 func.avg(StructuredEntry.confianca_global)
             ).filter(StructuredEntry.confianca_global.isnot(None)).scalar() or 0
-        except Exception as e:
-            print(f"Erro ao calcular confiança: {e}")
+        except:
             avg_confidence = 0
         
         # Últimas entradas
@@ -79,45 +74,42 @@ def dashboard():
                 })
         except Exception as e:
             print(f"Erro ao buscar últimas entradas: {e}")
-            latest_entries = []
         
-        # Consolidar estatísticas
-        dashboard_stats = {
-            'total_raw': stats['total_raw'],
-            'total_structured': stats['total_structured'],
-            'unprocessed': stats['unprocessed'],
-            'coverage': stats['coverage'],
+        coverage = round((total_structured / total_raw * 100) if total_raw > 0 else 0, 1)
+        
+        stats = {
+            'total_raw': total_raw,
+            'total_structured': total_structured,
+            'unprocessed': unprocessed,
+            'coverage': coverage,
             'status_counts': status_counts,
             'tipos_demanda': tipos_demanda,
             'avg_confidence': round(avg_confidence, 3),
             'latest_entries': latest_entries
         }
         
-        return render_template('dashboard.html', stats=dashboard_stats)
+        return render_template('dashboard.html', stats=stats)
         
     except Exception as e:
-        # Garantir rollback em caso de erro
-        db.ensure_clean_transaction()
-        error_msg = f"Erro ao carregar dashboard: {str(e)}"
-        print(error_msg)
-        return error_msg, 500
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
+        return f"Erro ao carregar dashboard: {e}", 500
 
 @app.route('/entradas')
 def entradas():
     """Página com listagem de todas as entradas"""
     try:
-        # Garantir transação limpa
-        db.ensure_clean_transaction()
-        
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
         page = request.args.get('page', 1, type=int)
         per_page = 20
         
-        # Query base com join
+        # Query com paginação
         query = db.session.query(StructuredEntry, RawEntry).join(
             RawEntry, StructuredEntry.raw_text_id == RawEntry.id
         ).order_by(desc(StructuredEntry.id))
         
-        # Aplicar filtros
+        # Filtros opcionais
         status_filter = request.args.get('status')
         tipo_filter = request.args.get('tipo')
         
@@ -149,13 +141,9 @@ def entradas():
                 'agente_id': raw.agente_id
             })
         
-        # Opções para filtros
-        try:
-            status_options = db.session.query(StructuredEntry.extraction_status).distinct().all()
-            tipos_options = db.session.query(StructuredEntry.tipo_demanda).distinct().all()
-        except:
-            status_options = []
-            tipos_options = []
+        # Dados para filtros
+        status_options = db.session.query(StructuredEntry.extraction_status).distinct().all()
+        tipos_options = db.session.query(StructuredEntry.tipo_demanda).distinct().all()
         
         pagination = {
             'page': page,
@@ -175,19 +163,16 @@ def entradas():
                              current_tipo=tipo_filter)
         
     except Exception as e:
-        # Garantir rollback em caso de erro
-        db.ensure_clean_transaction()
-        error_msg = f"Erro ao carregar entradas: {str(e)}"
-        print(error_msg)
-        return error_msg, 500
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
+        return f"Erro ao carregar entradas: {e}", 500
 
 @app.route('/entrada/<int:entry_id>')
 def entrada_detalhe(entry_id):
     """Página de detalhes de uma entrada específica"""
     try:
-        # Garantir transação limpa
-        db.ensure_clean_transaction()
-        
+        # Garantir que não há transação em erro
+        db.ensure_transaction_rollback()
         result = db.session.query(StructuredEntry, RawEntry).join(
             RawEntry, StructuredEntry.raw_text_id == RawEntry.id
         ).filter(StructuredEntry.id == entry_id).first()
@@ -210,6 +195,7 @@ def entrada_detalhe(entry_id):
             'tipo_demanda': structured.tipo_demanda,
             'descricao_curta': structured.descricao_curta,
             'prioridade_percebida': structured.prioridade_percebida,
+            'consentimento_comunicacao': structured.consentimento_comunicacao,
             'data_contato': structured.data_contato,
             'hora_contato': structured.hora_contato,
             
@@ -221,10 +207,6 @@ def entrada_detalhe(entry_id):
             'error_msg': structured.error_msg,
             'revisado': structured.revisado,
             'timestamp_processamento': structured.timestamp_processamento,
-            'fonte': structured.fonte,
-            'llm_metadata': structured.llm_metadata,
-            'processing_attempts': structured.processing_attempts,
-            'last_processed_at': structured.last_processed_at,
             
             # Dados originais
             'texto_original': raw.texto_original,
@@ -238,56 +220,39 @@ def entrada_detalhe(entry_id):
         return render_template('entrada_detalhe.html', entrada=entrada)
         
     except Exception as e:
-        # Garantir rollback em caso de erro
-        db.ensure_clean_transaction()
-        error_msg = f"Erro ao carregar entrada: {str(e)}"
-        print(error_msg)
-        return error_msg, 500
+        # Reverter transação em caso de erro
+        db.ensure_transaction_rollback()
+        return f"Erro ao carregar entrada: {e}", 500
 
 @app.route('/api/stats')
 def api_stats():
     """API endpoint para estatísticas (para AJAX)"""
     try:
-        db.ensure_clean_transaction()
-        stats = db.get_stats()
+        processor = AutoProcessor()
+        stats = processor.get_summary_stats()
         return jsonify(stats)
     except Exception as e:
-        db.ensure_clean_transaction()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/process', methods=['POST'])
 def api_process():
     """API endpoint para processar entradas pendentes"""
     try:
-        # Este endpoint pode ser implementado posteriormente
-        # com o AutoProcessor adaptado para PostgreSQL
-        return jsonify({'message': 'Processamento não implementado ainda'}), 501
+        import asyncio
+        processor = AutoProcessor()
+        
+        # Executar processamento
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        results = loop.run_until_complete(processor.process_new_entries())
+        loop.close()
+        
+        return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/health')
-def health_check():
-    """Endpoint de health check para Railway"""
-    try:
-        db.ensure_clean_transaction()
-        stats = db.get_stats()
-        return jsonify({
-            'status': 'healthy',
-            'database': 'connected',
-            'total_entries': stats['total_raw']
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e)
-        }), 500
-
 if __name__ == '__main__':
+    import os
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('ENVIRONMENT', 'production') == 'development'
-    
-    print(f"🚀 Iniciando AgenticLead Web App (PostgreSQL)")
-    print(f"   Porta: {port}")
-    print(f"   Debug: {debug}")
-    
     app.run(debug=debug, host='0.0.0.0', port=port)

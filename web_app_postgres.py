@@ -3,7 +3,7 @@ Interface Web para AgenticLead - Versão PostgreSQL
 Dashboard otimizado para PostgreSQL
 """
 from flask import Flask, render_template, jsonify, request
-from database import get_db, RawEntry, StructuredEntry
+from database_postgres import get_db, RawEntry, StructuredEntry
 from sqlalchemy import func, desc
 from datetime import datetime
 import json
