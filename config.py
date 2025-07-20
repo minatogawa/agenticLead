@@ -13,6 +13,10 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 # Configurações do banco de dados
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///agenticlead.db")
 
+# Para PostgreSQL no Railway, a URL vem como postgres:// mas SQLAlchemy 2.x precisa postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # Configurações da API OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
