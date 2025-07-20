@@ -242,5 +242,5 @@ def api_process():
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('ENVIRONMENT', 'development') == 'development'
+    debug = os.environ.get('ENVIRONMENT', 'production') == 'development'
     app.run(debug=debug, host='0.0.0.0', port=port)
