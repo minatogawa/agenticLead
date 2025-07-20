@@ -1,7 +1,7 @@
 """
 Módulo de banco de dados para AgenticLead
 """
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, Text, JSON
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, Text, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -27,7 +27,7 @@ class StructuredEntry(Base):
     __tablename__ = 'structured_entries'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    raw_text_id = Column(Integer, nullable=False)  # FK para raw_entries
+    raw_text_id = Column(Integer, ForeignKey('raw_entries.id'), nullable=False)
     
     # Campos extraídos
     data_contato = Column(String(10))  # YYYY-MM-DD
